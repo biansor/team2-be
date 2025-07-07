@@ -1,6 +1,6 @@
+import os
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
-import os
 import tempfile
 from deepface import DeepFace
 import cv2
@@ -9,11 +9,13 @@ from PIL import Image
 import io
 import base64
 from flask_cors import CORS
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-
-# Enable CORS for all routes
 CORS(app)
+
+load_dotenv()
+port = int(os.getenv('PORT', 5001))
 
 # Configuration
 UPLOAD_FOLDER = 'temp_uploads'
@@ -290,4 +292,4 @@ if __name__ == '__main__':
     print("  GET /models - Get available models and distance metrics")
     print("  GET /health - Health check")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=port)
