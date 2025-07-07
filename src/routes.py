@@ -4,8 +4,9 @@ from werkzeug.utils import secure_filename
 from deepface import DeepFace
 import tempfile
 import base64
-from src.config import UPLOAD_FOLDER, ALLOWED_EXTENSIONS, MODELS, DISTANCE_METRICS, DEFAULT_MODEL, DEFAULT_DISTANCE_METRIC, DEFAULT_THRESHOLD, BACKENDS
-from src.utils import allowed_file, cleanup_file, preprocess_image
+from src.config import ALLOWED_EXTENSIONS, MODELS, DISTANCE_METRICS, DEFAULT_MODEL, DEFAULT_DISTANCE_METRIC, DEFAULT_THRESHOLD, BACKENDS
+from src.utils import allowed_file, cleanup_file, preprocess_image, calculate_similarity_percentage, get_threshold
+import json
 
 def register_routes(app):
     @app.route('/health', methods=['GET'])
@@ -56,10 +57,14 @@ def register_routes(app):
                     'error': 'Failed to process images',
                     'success': False
                 }), 400
+            
 
             model_name = request.form.get('model', DEFAULT_MODEL)
             distance_metric = request.form.get('distance_metric', DEFAULT_DISTANCE_METRIC)
-            threshold = float(request.form.get('threshold', DEFAULT_THRESHOLD))
+
+            _distance_metric =  get_threshold(model_name, distance_metric)
+            
+            threshold = float(request.form.get('threshold', _distance_metric))
             detector_backend = request.form.get('detector_backend', BACKENDS[0])
 
             if distance_metric not in DISTANCE_METRICS:
@@ -78,6 +83,11 @@ def register_routes(app):
 
             cleanup_file(filepath1)
             cleanup_file(filepath2)
+            
+            similarity_percentage = calculate_similarity_percentage(result['distance'], distance_metric, threshold)
+
+            pretty_json = json.dumps(result, indent=4)
+            print(pretty_json)
 
             response = {
                 'success': True,
@@ -86,7 +96,7 @@ def register_routes(app):
                 'threshold': result['threshold'],
                 'model': result['model'],
                 'distance_metric': result.get('distance_metric', distance_metric),
-                'similarity_percentage': round((1 - result['distance']) * 100, 2) if result['distance'] < 1 else 0
+                'similarity_percentage': similarity_percentage
             }
 
             return jsonify(response)
@@ -127,10 +137,13 @@ def register_routes(app):
                 tmp2.write(img2_data)
                 filepath2 = tmp2.name
 
-            model_name = data.get('model', DEFAULT_MODEL)
-            distance_metric = data.get('distance_metric', DEFAULT_DISTANCE_METRIC)
-            threshold = float(data.get('threshold', DEFAULT_THRESHOLD))
-            detector_backend = data.get('detector_backend', BACKENDS[0])
+            model_name = request.form.get('model', DEFAULT_MODEL)
+            distance_metric = request.form.get('distance_metric', DEFAULT_DISTANCE_METRIC)
+
+            _distance_metric =  get_threshold(model_name, distance_metric)
+            
+            threshold = float(request.form.get('threshold', _distance_metric))
+            detector_backend = request.form.get('detector_backend', BACKENDS[0])
 
             if distance_metric not in DISTANCE_METRICS:
                 distance_metric = DEFAULT_DISTANCE_METRIC
@@ -149,6 +162,8 @@ def register_routes(app):
             cleanup_file(filepath1)
             cleanup_file(filepath2)
 
+            similarity_percentage = calculate_similarity_percentage(result['distance'], distance_metric, threshold)
+
             response = {
                 'success': True,
                 'verified': result['verified'],
@@ -156,7 +171,7 @@ def register_routes(app):
                 'threshold': result['threshold'],
                 'model': result['model'],
                 'distance_metric': result.get('distance_metric', distance_metric),
-                'similarity_percentage': round((1 - result['distance']) * 100, 2) if result['distance'] < 1 else 0
+                'similarity_percentage': similarity_percentage
             }
 
             return jsonify(response)

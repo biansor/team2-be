@@ -45,21 +45,24 @@ pip install -r requirements.txt
 python -m src.app
 ```
 
+Create `.env` file
+
+```
+PORT=5000
+```
+
 The API will start on `http://localhost:5000`
 
 ## 📦 Dependencies
 
-Create a `requirements.txt` file with:
+`requirements.txt` file:
 
 ```txt
-Flask==2.3.3
-deepface==0.0.79
-opencv-python==4.8.1.78
-Pillow==10.0.1
-numpy==1.24.3
-Werkzeug==2.3.7
-tf-keras==2.13.0
-tensorflow==2.13.0
+deepface
+flask
+flask-cors
+tf-keras
+python-dotenv
 ```
 
 ## 🎯 API Endpoints
