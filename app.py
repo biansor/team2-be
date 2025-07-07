@@ -61,7 +61,7 @@ def health_check():
 
 @app.route('/compare', methods=['POST'])
 def compare_faces():
-    """Compare two face images"""
+    print("""Compare two face images""")
     try:
         # Check if the request has files
         if 'image1' not in request.files or 'image2' not in request.files:
@@ -106,10 +106,15 @@ def compare_faces():
                 'success': False
             }), 400
 
-        # Get optional parameters
+        # Get optional parameters with proper validation
         model_name = request.form.get('model', 'VGG-Face')  # Default model
         distance_metric = request.form.get('distance_metric', 'cosine')
         threshold = float(request.form.get('threshold', 0.4))  # Default threshold
+        
+        # Validate distance metric
+        valid_metrics = ['cosine', 'euclidean', 'euclidean_l2']
+        if distance_metric not in valid_metrics:
+            distance_metric = 'cosine'
 
         # Perform face comparison
         result = DeepFace.verify(
@@ -131,7 +136,7 @@ def compare_faces():
             'distance': result['distance'],
             'threshold': result['threshold'],
             'model': result['model'],
-            'distance_metric': result['distance_metric'],
+            'distance_metric': result.get('distance_metric', distance_metric),
             'similarity_percentage': round((1 - result['distance']) * 100, 2) if result['distance'] < 1 else 0
         }
 
@@ -178,10 +183,15 @@ def compare_faces_base64():
             tmp2.write(img2_data)
             filepath2 = tmp2.name
 
-        # Get optional parameters
+        # Get optional parameters with proper validation
         model_name = data.get('model', 'VGG-Face')
         distance_metric = data.get('distance_metric', 'cosine')
         threshold = float(data.get('threshold', 0.4))
+        
+        # Validate distance metric
+        valid_metrics = ['cosine', 'euclidean', 'euclidean_l2']
+        if distance_metric not in valid_metrics:
+            distance_metric = 'cosine'
 
         # Perform face comparison
         result = DeepFace.verify(
@@ -203,7 +213,7 @@ def compare_faces_base64():
             'distance': result['distance'],
             'threshold': result['threshold'],
             'model': result['model'],
-            'distance_metric': result['distance_metric'],
+            'distance_metric': result.get('distance_metric', distance_metric),
             'similarity_percentage': round((1 - result['distance']) * 100, 2) if result['distance'] < 1 else 0
         }
 
