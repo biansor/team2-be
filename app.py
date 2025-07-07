@@ -8,8 +8,12 @@ import numpy as np
 from PIL import Image
 import io
 import base64
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+# Enable CORS for all routes
+CORS(app)
 
 # Configuration
 UPLOAD_FOLDER = 'temp_uploads'
