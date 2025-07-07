@@ -42,7 +42,7 @@ pip install -r requirements.txt
 ### 4. Run the API
 
 ```bash
-python app.py
+python -m src.app
 ```
 
 The API will start on `http://localhost:5000`

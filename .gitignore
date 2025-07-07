@@ -1,3 +1,5 @@
 hackathon_env
 mac_env
+__pycache__
+face_api_env
 .env
