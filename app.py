@@ -243,16 +243,62 @@ def get_available_models():
             "cosine": 0.68,
             "euclidean": 1.17,
             "euclidean_l2": 1.17,
+            "description": "VGG-Face uses a deep convolutional neural network, excelling in feature extraction for face recognition but can be computationally intensive."
         },
-        "Facenet": {"cosine": 0.40, "euclidean": 10, "euclidean_l2": 0.80},
-        "Facenet512": {"cosine": 0.30, "euclidean": 23.56, "euclidean_l2": 1.04},
-        "ArcFace": {"cosine": 0.68, "euclidean": 4.15, "euclidean_l2": 1.13},
-        "Dlib": {"cosine": 0.07, "euclidean": 0.6, "euclidean_l2": 0.4},
-        "SFace": {"cosine": 0.593, "euclidean": 10.734, "euclidean_l2": 1.055},
-        "OpenFace": {"cosine": 0.10, "euclidean": 0.55, "euclidean_l2": 0.55},
-        "DeepFace": {"cosine": 0.23, "euclidean": 64, "euclidean_l2": 0.64},
-        "DeepID": {"cosine": 0.015, "euclidean": 45, "euclidean_l2": 0.17},
-        "GhostFaceNet": {"cosine": 0.65, "euclidean": 35.71, "euclidean_l2": 1.10}
+        "Facenet": {
+            "cosine": 0.40,
+            "euclidean": 10,
+            "euclidean_l2": 0.80,
+            "description": "Facenet employs triplet loss for robust face embedding, offering strong performance across various face recognition tasks."
+        },
+        "Facenet512": {
+            "cosine": 0.30,
+            "euclidean": 23.56,
+            "euclidean_l2": 1.04,
+            "description": "An enhanced version of Facenet with 512-dimensional embeddings, improving accuracy for complex datasets."
+        },
+        "ArcFace": {
+            "cosine": 0.68,
+            "euclidean": 4.15,
+            "euclidean_l2": 1.13,
+            "description": "ArcFace uses angular margin loss, providing high precision especially on diverse datasets with improved discriminative power."
+        },
+        "Dlib": {
+            "cosine": 0.07,
+            "euclidean": 0.6,
+            "euclidean_l2": 0.4,
+            "description": "Dlib's face recognition model is lightweight and efficient, ideal for real-time applications with good accuracy."
+        },
+        "SFace": {
+            "cosine": 0.593,
+            "euclidean": 10.734,
+            "euclidean_l2": 1.055,
+            "description": "SFace focuses on secure face recognition, optimizing for privacy-preserving applications with balanced performance."
+        },
+        "OpenFace": {
+            "cosine": 0.10,
+            "euclidean": 0.55,
+            "euclidean_l2": 0.55,
+            "description": "OpenFace is an open-source model leveraging deep neural networks, suitable for research and small-scale deployments."
+        },
+        "DeepFace": {
+            "cosine": 0.23,
+            "euclidean": 64,
+            "euclidean_l2": 0.64,
+            "description": "DeepFace integrates multiple deep learning techniques, offering robust performance but may require significant computational resources."
+        },
+        "DeepID": {
+            "cosine": 0.015,
+            "euclidean": 45,
+            "euclidean_l2": 0.17,
+            "description": "DeepID uses identity-preserving features, excelling in distinguishing subtle facial differences with high accuracy."
+        },
+        "GhostFaceNet": {
+            "cosine": 0.65,
+            "euclidean": 35.71,
+            "euclidean_l2": 1.10,
+            "description": "GhostFaceNet is optimized for lightweight and fast face recognition, suitable for resource-constrained environments."
+        }
     }
     
     distance_metrics = ['cosine', 'euclidean', 'euclidean_l2']
