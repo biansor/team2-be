@@ -196,6 +196,275 @@ def register_routes(app):
             'recommended_distance_metric': DEFAULT_DISTANCE_METRIC
         })
 
+    @app.route('/analyze', methods=['POST'])
+    def analyze_image():
+        """Analyze face image for age, gender, emotion, and race"""
+        print("Analyzing photo")
+        try:
+            if 'image' not in request.files:
+                return jsonify({
+                    'error': 'Image file is required',
+                    'success': False
+                }), 400
+
+            file = request.files['image']
+
+            if file.filename == '':
+                return jsonify({
+                    'error': 'No file selected',
+                    'success': False
+                }), 400
+
+            if not allowed_file(file.filename, ALLOWED_EXTENSIONS):
+                return jsonify({
+                    'error': 'Invalid file format. Allowed formats: png, jpg, jpeg, gif, bmp',
+                    'success': False
+                }), 400
+
+            filename = secure_filename(f"analyze_{file.filename}")
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+            file.save(filepath)
+
+            if not preprocess_image(filepath):
+                cleanup_file(filepath)
+                return jsonify({
+                    'error': 'Failed to process image',
+                    'success': False
+                }), 400
+
+            # Get optional parameters from form data
+            detector_backend = request.form.get('detector_backend', BACKENDS[0])
+            actions = request.form.get('actions', 'age,gender,emotion,race').split(',')
+            
+            # Validate detector backend
+            if detector_backend not in BACKENDS:
+                detector_backend = BACKENDS[0]
+                
+            # Validate actions
+            valid_actions = ['age', 'gender', 'emotion', 'race']
+            actions = [action.strip() for action in actions if action.strip() in valid_actions]
+            
+            if not actions:
+                actions = ['age', 'gender', 'emotion', 'race']  # Default to all
+
+            # Perform analysis
+            analysis_result = DeepFace.analyze(
+                img_path=filepath,
+                actions=actions,
+                detector_backend=detector_backend,
+                enforce_detection=True
+            )
+
+            cleanup_file(filepath)
+
+            def convert_numpy_types(obj):
+                """Convert numpy types to Python native types for JSON serialization"""
+                if isinstance(obj, dict):
+                    return {key: convert_numpy_types(value) for key, value in obj.items()}
+                elif isinstance(obj, list):
+                    return [convert_numpy_types(item) for item in obj]
+                elif hasattr(obj, 'item'):  # numpy scalar
+                    return obj.item()
+                elif hasattr(obj, 'tolist'):  # numpy array
+                    return obj.tolist()
+                else:
+                    return obj
+
+            # Handle both single face and multiple faces results
+            if isinstance(analysis_result, list):
+                # Multiple faces detected
+                faces_analysis = []
+                for i, face_data in enumerate(analysis_result):
+                    face_info = {
+                        'face_index': i,
+                        'region': convert_numpy_types(face_data.get('region', {})),
+                    }
+                    
+                    # Add analysis results based on requested actions
+                    if 'age' in actions:
+                        face_info['age'] = convert_numpy_types(face_data.get('age', 0))
+                        
+                    if 'gender' in actions:
+                        gender_data = face_data.get('gender', {})
+                        face_info['gender'] = {
+                            'dominant': str(face_data.get('dominant_gender', 'unknown')),
+                            'probabilities': convert_numpy_types(gender_data)
+                        }
+                        
+                    if 'emotion' in actions:
+                        emotion_data = face_data.get('emotion', {})
+                        face_info['emotion'] = {
+                            'dominant': str(face_data.get('dominant_emotion', 'unknown')),
+                            'probabilities': convert_numpy_types(emotion_data)
+                        }
+                        
+                    if 'race' in actions:
+                        race_data = face_data.get('race', {})
+                        face_info['race'] = {
+                            'dominant': str(face_data.get('dominant_race', 'unknown')),
+                            'probabilities': convert_numpy_types(race_data)
+                        }
+                    
+                    faces_analysis.append(face_info)
+                    
+                analysis_summary = {
+                    'faces_detected': len(analysis_result),
+                    'faces': faces_analysis
+                }
+            else:
+                # Single face detected
+                face_info = {
+                    'region': convert_numpy_types(analysis_result.get('region', {})),
+                }
+                
+                # Add analysis results based on requested actions
+                if 'age' in actions:
+                    face_info['age'] = convert_numpy_types(analysis_result.get('age', 0))
+                    
+                if 'gender' in actions:
+                    gender_data = analysis_result.get('gender', {})
+                    face_info['gender'] = {
+                        'dominant': str(analysis_result.get('dominant_gender', 'unknown')),
+                        'probabilities': convert_numpy_types(gender_data)
+                    }
+                    
+                if 'emotion' in actions:
+                    emotion_data = analysis_result.get('emotion', {})
+                    face_info['emotion'] = {
+                        'dominant': str(analysis_result.get('dominant_emotion', 'unknown')),
+                        'probabilities': convert_numpy_types(emotion_data)
+                    }
+                    
+                if 'race' in actions:
+                    race_data = analysis_result.get('race', {})
+                    face_info['race'] = {
+                        'dominant': str(analysis_result.get('dominant_race', 'unknown')),
+                        'probabilities': convert_numpy_types(race_data)
+                    }
+                    
+                analysis_summary = {
+                    'faces_detected': 1,
+                    'faces': [face_info]
+                }
+
+            pretty_json = json.dumps(analysis_summary, indent=4)
+            print(pretty_json)
+
+            response = {
+                'success': True,
+                'detector_backend': detector_backend,
+                'actions_performed': actions,
+                **analysis_summary
+            }
+
+            return jsonify(response)
+
+        except Exception as e:
+            cleanup_file(filepath if 'filepath' in locals() else '')
+            return jsonify({
+                'error': f'Image analysis failed: {str(e)}',
+                'success': False
+            }), 500
+
+    @app.route('/liveness-check', methods=['POST'])
+    def check_liveness():
+        """Check if face image is live or spoofed"""
+        try:
+            if 'image' not in request.files:
+                return jsonify({
+                    'error': 'Image file is required',
+                    'success': False
+                }), 400
+
+            file = request.files['image']
+
+            if file.filename == '':
+                return jsonify({
+                    'error': 'No file selected',
+                    'success': False
+                }), 400
+
+            if not allowed_file(file.filename, ALLOWED_EXTENSIONS):
+                return jsonify({
+                    'error': 'Invalid file format. Allowed formats: png, jpg, jpeg, gif, bmp',
+                    'success': False
+                }), 400
+
+            filename = secure_filename(f"liveness_{file.filename}")
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+            file.save(filepath)
+
+            if not preprocess_image(filepath):
+                cleanup_file(filepath)
+                return jsonify({
+                    'error': 'Failed to process image',
+                    'success': False
+                }), 400
+
+            # Params
+            detector_backend = request.form.get('detector_backend', BACKENDS[0])
+            enforce_detection = request.form.get('enforce_detection', False)
+            
+            if detector_backend not in BACKENDS:
+                detector_backend = BACKENDS[0]
+
+            # Extract faces with anti-spoofing
+            faces = DeepFace.extract_faces(
+                img_path=filepath,
+                anti_spoofing=True,
+                detector_backend=detector_backend,
+                enforce_detection=enforce_detection
+            )
+
+            cleanup_file(filepath)
+
+            if not faces:
+                return jsonify({
+                    'success': False,
+                    'is_live': False,
+                    'confidence': 0.0,
+                    'faces_detected': 0,
+                    'message': 'No face detected'
+                })
+
+            # Get the first face result
+            face_result = faces[0]
+
+            print(faces)
+            
+            # Check if the face appears to be live
+            # Note: The exact structure may vary depending on DeepFace version
+            is_live = face_result.get('is_real', True)  # Default to True if not available
+            confidence = face_result.get('antispoof_score', 1.0)  # Default confidence
+
+            pretty_json = json.dumps({
+                'is_live': is_live,
+                'confidence': float(confidence),
+                'faces_detected': len(faces),
+                'detector_backend': detector_backend
+            }, indent=4)
+            print(pretty_json)
+
+            response = {
+                'success': True,
+                'is_live': is_live,
+                'confidence': float(confidence),
+                'faces_detected': len(faces),
+                'detector_backend': detector_backend,
+                'message': 'Live face detected' if is_live else 'Spoofed face detected'
+            }
+
+            return jsonify(response)
+
+        except Exception as e:
+            cleanup_file(filepath if 'filepath' in locals() else '')
+            return jsonify({
+                'error': f'Liveness check failed: {str(e)}',
+                'success': False
+            }), 500
+
     @app.errorhandler(413)
     def too_large(e):
         return jsonify({

@@ -3,3 +3,5 @@ flask
 flask-cors
 tf-keras
 python-dotenv
+torch
+torchvision
