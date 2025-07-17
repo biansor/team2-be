@@ -6,7 +6,7 @@ load_dotenv()
 # Flask configuration
 PORT = int(os.getenv('PORT', 5001))
 UPLOAD_FOLDER = 'temp_uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'pjpeg'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'pjpeg', 'heic'}
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 
 # Face recognition backends
@@ -32,7 +32,7 @@ MODELS = {
     },
     "Facenet512": {
         "description": "A variant of FaceNet that specifically produces 512-dimensional face embeddings. It often uses an Inception Residual Masking Network pre-trained on VGGFace2 to classify facial identities and provides this 512-dimensional latent facial embedding space.",
-        "cosine": 0.687,
+        "cosine": 0.6,
         "euclidean": 23.56,
         "euclidean_l2": 1.2
     },
@@ -81,6 +81,6 @@ MODELS = {
 }
 
 DISTANCE_METRICS = ['cosine', 'euclidean', 'euclidean_l2']
-DEFAULT_MODEL = 'ArcFace'
+DEFAULT_MODEL = 'Facenet512'
 DEFAULT_DISTANCE_METRIC = 'cosine'
 DEFAULT_THRESHOLD = 0.5

@@ -4,8 +4,8 @@ from werkzeug.utils import secure_filename
 from deepface import DeepFace
 import tempfile
 import base64
-from src.config import ALLOWED_EXTENSIONS, MODELS, DISTANCE_METRICS, DEFAULT_MODEL, DEFAULT_DISTANCE_METRIC, DEFAULT_THRESHOLD, BACKENDS
-from src.utils import allowed_file, cleanup_file, preprocess_image, calculate_similarity_percentage, get_threshold
+from src.config import MODELS, DISTANCE_METRICS, DEFAULT_MODEL, DEFAULT_DISTANCE_METRIC, BACKENDS
+from src.utils import is_image, cleanup_file, preprocess_image, calculate_similarity_percentage, get_threshold
 import json
 
 def register_routes(app):
@@ -36,9 +36,9 @@ def register_routes(app):
                     'success': False
                 }), 400
 
-            if not (allowed_file(file1.filename, ALLOWED_EXTENSIONS) and allowed_file(file2.filename, ALLOWED_EXTENSIONS)):
+            if not (is_image(file1) and is_image(file2)):
                 return jsonify({
-                    'error': 'Invalid file format. Allowed formats: png, jpg, jpeg, gif, bmp',
+                    'error': 'Invalid image file(s). Ensure both files are valid images.',
                     'success': False
                 }), 400
 
@@ -215,7 +215,8 @@ def register_routes(app):
                     'success': False
                 }), 400
 
-            if not allowed_file(file.filename, ALLOWED_EXTENSIONS):
+
+            if not (is_image(file)):
                 return jsonify({
                     'error': 'Invalid file format. Allowed formats: png, jpg, jpeg, gif, bmp',
                     'success': False
@@ -385,7 +386,7 @@ def register_routes(app):
                     'success': False
                 }), 400
 
-            if not allowed_file(file.filename, ALLOWED_EXTENSIONS):
+            if not (is_image(file)):
                 return jsonify({
                     'error': 'Invalid file format. Allowed formats: png, jpg, jpeg, gif, bmp',
                     'success': False

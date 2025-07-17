@@ -2,6 +2,15 @@ import os
 import cv2
 from src.config import MODELS, DEFAULT_THRESHOLD
 import math
+from PIL import Image
+
+def is_image(file_storage):
+    try:
+        Image.open(file_storage).verify()
+        file_storage.seek(0)
+        return True
+    except Exception:
+        return False
 
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
