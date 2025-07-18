@@ -5,7 +5,7 @@ from src.config import UPLOAD_FOLDER, MAX_CONTENT_LENGTH, PORT
 from src.routes import register_routes
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="*")
 
 # Apply configuration
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER

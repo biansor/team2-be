@@ -11,8 +11,8 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 
 # Face recognition backends
 BACKENDS = [
-    'opencv', 'ssd', 'dlib', 'mtcnn', 'fastmtcnn',
-    'retinaface', 'mediapipe', 'yolov8', 'yolov11s',
+    'retinaface', 'opencv', 'ssd', 'dlib', 'mtcnn', 'fastmtcnn',
+    'mediapipe', 'yolov8', 'yolov11s',
     'yolov11n', 'yolov11m', 'yunet', 'centerface',
 ]
 
@@ -32,7 +32,7 @@ MODELS = {
     },
     "Facenet512": {
         "description": "A variant of FaceNet that specifically produces 512-dimensional face embeddings. It often uses an Inception Residual Masking Network pre-trained on VGGFace2 to classify facial identities and provides this 512-dimensional latent facial embedding space.",
-        "cosine": 0.6,
+        "cosine": 0.55,
         "euclidean": 23.56,
         "euclidean_l2": 1.2
     },
@@ -84,3 +84,4 @@ DISTANCE_METRICS = ['cosine', 'euclidean', 'euclidean_l2']
 DEFAULT_MODEL = 'Facenet512'
 DEFAULT_DISTANCE_METRIC = 'cosine'
 DEFAULT_THRESHOLD = 0.5
+DEFAULT_DETECTOR='retinaface'

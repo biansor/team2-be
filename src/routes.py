@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from deepface import DeepFace
 import tempfile
 import base64
-from src.config import MODELS, DISTANCE_METRICS, DEFAULT_MODEL, DEFAULT_DISTANCE_METRIC, BACKENDS
+from src.config import MODELS, DISTANCE_METRICS, DEFAULT_MODEL, DEFAULT_DISTANCE_METRIC, DEFAULT_DETECTOR, BACKENDS
 from src.utils import is_image, cleanup_file, preprocess_image, calculate_similarity_percentage, get_threshold
 import json
 
@@ -193,7 +193,8 @@ def register_routes(app):
             'distance_metrics': DISTANCE_METRICS,
             'backends': BACKENDS,
             'recommended_model': DEFAULT_MODEL,
-            'recommended_distance_metric': DEFAULT_DISTANCE_METRIC
+            'recommended_distance_metric': DEFAULT_DISTANCE_METRIC,
+            'recommended_detector': DEFAULT_DETECTOR
         })
 
     @app.route('/analyze', methods=['POST'])
@@ -249,12 +250,15 @@ def register_routes(app):
             if not actions:
                 actions = ['age', 'gender', 'emotion', 'race']  # Default to all
 
+            print(detector_backend)
+
             # Perform analysis
             analysis_result = DeepFace.analyze(
                 img_path=filepath,
                 actions=actions,
                 detector_backend=detector_backend,
-                enforce_detection=True
+                enforce_detection=True,
+                expand_percentage=50
             )
 
             cleanup_file(filepath)
